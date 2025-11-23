@@ -274,17 +274,21 @@ def default_writers(cfg, max_iter: Optional[int] = None):
     """
     output_dir = cfg.OUTPUT_DIR
     PathManager.mkdirs(output_dir)
-    # Set up Wandb writer if specified in cfg
-    if hasattr(cfg, "WANDB_PROJECT_NAME") and cfg.WANDB_PROJECT_NAME:
-        wandb_writer = WandbWriter(project_name=cfg.WANDB_PROJECT_NAME,
-                                       run_name=cfg.WANDB_RUN_NAME if cfg.WANDB_RUN_NAME else None)
-    return [
+
+    writers = [
         # It may not always print what you want to see, since it prints "common" metrics only.
         CommonMetricPrinter(max_iter),
         JSONWriter(os.path.join(output_dir, "metrics.json")),
         TensorboardXWriter(output_dir),
-        wandb_writer if 'wandb_writer' in locals() else None,
     ]
+    if hasattr(cfg, "WANDB_PROJECT") and cfg.WANDB_PROJECT:
+        writers.append(
+            WandbWriter(
+                project_name=cfg.WANDB_PROJECT,
+                run_name=cfg.WANDB_RUN_NAME if hasattr(cfg, "WANDB_RUN_NAME") and cfg.WANDB_RUN_NAME else None,
+            )
+        )
+    return writers
 
 
 class DefaultPredictor:
