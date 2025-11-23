@@ -40,7 +40,7 @@ from detectron2.solver import build_lr_scheduler, build_optimizer
 from detectron2.utils import comm
 from detectron2.utils.collect_env import collect_env_info
 from detectron2.utils.env import seed_all_rng
-from detectron2.utils.events import CommonMetricPrinter, JSONWriter, TensorboardXWriter
+from detectron2.utils.events import CommonMetricPrinter, JSONWriter, TensorboardXWriter, WandbWriter
 from detectron2.utils.file_io import PathManager
 from detectron2.utils.logger import setup_logger
 
@@ -259,7 +259,7 @@ def default_setup(cfg, args):
         logger.info(f"{torch.backends.cudnn.allow_tf32=}")
 
 
-def default_writers(output_dir: str, max_iter: Optional[int] = None):
+def default_writers(cfg, max_iter: Optional[int] = None):
     """
     Build a list of :class:`EventWriter` to be used.
     It now consists of a :class:`CommonMetricPrinter`,
@@ -272,12 +272,18 @@ def default_writers(output_dir: str, max_iter: Optional[int] = None):
     Returns:
         list[EventWriter]: a list of :class:`EventWriter` objects.
     """
+    output_dir = cfg.OUTPUT_DIR
     PathManager.mkdirs(output_dir)
+    # Set up Wandb writer if specified in cfg
+    if hasattr(cfg, "WANDB_PROJECT_NAME") and cfg.WANDB_PROJECT_NAME:
+        wandb_writer = WandbWriter(project_name=cfg.WANDB_PROJECT_NAME,
+                                       run_name=cfg.WANDB_RUN_NAME if cfg.WANDB_RUN_NAME else None)
     return [
         # It may not always print what you want to see, since it prints "common" metrics only.
         CommonMetricPrinter(max_iter),
         JSONWriter(os.path.join(output_dir, "metrics.json")),
         TensorboardXWriter(output_dir),
+        wandb_writer if 'wandb_writer' in locals() else None,
     ]
 
 
@@ -508,7 +514,7 @@ class DefaultTrainer(TrainerBase):
         Returns:
             list[EventWriter]: a list of :class:`EventWriter` objects.
         """
-        return default_writers(self.cfg.OUTPUT_DIR, self.max_iter)
+        return default_writers(self.cfg, self.max_iter)
 
     def train(self):
         """

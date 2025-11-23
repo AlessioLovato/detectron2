@@ -37,6 +37,7 @@ from detectron2.evaluation import (
     verify_results,
 )
 from detectron2.modeling import GeneralizedRCNNWithTTA
+from detectron2.data.datasets import register_coco_instances
 
 
 def build_evaluator(cfg, dataset_name, output_folder=None):
@@ -113,9 +114,19 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
+    # Register COCO datasets if specified in args
+    train_path = args.dataset_folder + "/train"
+    val_path = args.dataset_folder + "/val"
+    register_coco_instances("coco-big-images-rev-train", {}, train_path + "/_annotations.coco.json", train_path)
+    register_coco_instances("coco-big-images-rev-val", {}, val_path + "/_annotations.coco.json", val_path)
+
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    cfg.DATASETS.TRAIN = ("coco-big-images-rev-train",)
+    cfg.DATASETS.TEST = ("coco-big-images-rev-val",)
+    cfg.WANDB_PROJECT = args.wandb_project
+    cfg.WANDB_RUN_NAME = args.wandb_run_name
     cfg.freeze()
     default_setup(cfg, args)
     return cfg
@@ -151,7 +162,24 @@ def main(args):
 
 
 def invoke_main() -> None:
-    args = default_argument_parser().parse_args()
+    args = default_argument_parser()
+    args.add_argument(
+        "--dataset-folder",
+        type=str,
+        help="Path to a COCO format dataset JSON file to register.",
+    )
+    args.add_argument(
+        "--wandb-project",
+        type=str,
+        help="Name of the Weights & Biases project.",
+    )
+    args.add_argument(
+        "--wandb-run-name",
+        type=str,
+        help="Name of the Weights & Biases run.",
+    )
+
+    args = args.parse_args()
     print("Command Line Args:", args)
     launch(
         main,
