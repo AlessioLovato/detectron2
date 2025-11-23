@@ -127,6 +127,7 @@ def setup(args):
     cfg.DATASETS.TEST = ("coco-big-images-rev-val",)
     cfg.WANDB_PROJECT = args.wandb_project
     cfg.WANDB_RUN_NAME = args.wandb_run_name
+    cfg.OUTPUT_DIR = args.output_dir
     cfg.freeze()
     default_setup(cfg, args)
     return cfg
@@ -177,6 +178,12 @@ def invoke_main() -> None:
         "--wandb-run-name",
         type=str,
         help="Name of the Weights & Biases run.",
+    )
+    args.add_argument(
+        "--output-dir",
+        default="output",
+        type=str,
+        help="Directory to save output files.",
     )
 
     args = args.parse_args()
