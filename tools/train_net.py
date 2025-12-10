@@ -116,7 +116,7 @@ def setup(args):
     """
     # Register COCO datasets if specified in args
     train_path = args.dataset_folder + "/train"
-    val_path = args.dataset_folder + "/val"
+    val_path = args.dataset_folder + "/test"
     register_coco_instances("coco-big-images-rev-train", {}, train_path + "/_annotations.coco.json", train_path)
     register_coco_instances("coco-big-images-rev-val", {}, val_path + "/_annotations.coco.json", val_path)
 
@@ -163,30 +163,30 @@ def main(args):
 
 
 def invoke_main() -> None:
-    args = default_argument_parser()
-    args.add_argument(
+    parser = default_argument_parser()
+    parser.add_argument(
         "--dataset-folder",
         type=str,
         help="Path to a COCO format dataset JSON file to register.",
     )
-    args.add_argument(
+    parser.add_argument(
         "--wandb-project",
         type=str,
         help="Name of the Weights & Biases project.",
     )
-    args.add_argument(
+    parser.add_argument(
         "--wandb-run-name",
         type=str,
         help="Name of the Weights & Biases run.",
     )
-    args.add_argument(
+    parser.add_argument(
         "--output-dir",
         default="output",
         type=str,
         help="Directory to save output files.",
     )
 
-    args = args.parse_args()
+    args = parser.parse_args()
     print("Command Line Args:", args)
     launch(
         main,
