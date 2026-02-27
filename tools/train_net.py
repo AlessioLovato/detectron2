@@ -116,9 +116,9 @@ def setup(args):
     """
     # Register COCO datasets if specified in args
     train_path = args.dataset_folder + "/train"
-    val_path = args.dataset_folder + "/test"
-    register_coco_instances("coco-big-images-rev-train", {}, train_path + "/_annotations.coco.json", train_path)
-    register_coco_instances("coco-big-images-rev-val", {}, val_path + "/_annotations.coco.json", val_path)
+    val_path = args.dataset_folder + "/val"
+    register_coco_instances("coco-big-images-rev-train", {}, train_path + "/annotations.json", train_path)
+    register_coco_instances("coco-big-images-rev-val", {}, val_path + "/annotations.json", val_path)
 
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
