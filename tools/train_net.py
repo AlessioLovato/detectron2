@@ -114,17 +114,26 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
-    # Register COCO datasets if specified in args
-    train_path = args.dataset_folder + "/train"
-    val_path = args.dataset_folder + "/val"
-    register_coco_instances("coco-big-images-rev-train", {}, train_path + "/annotations.json", train_path)
-    register_coco_instances("coco-big-images-rev-val", {}, val_path + "/annotations.json", val_path)
+    # Extract dataset name from the last folder in the path
+    dataset_name = os.path.basename(os.path.normpath(args.dataset_folder))
+
+    # Build paths
+    train_path = os.path.join(args.dataset_folder, "train")
+    val_path = os.path.join(args.dataset_folder, "val")
+
+    # Dynamic dataset identifiers
+    train_id = f"{dataset_name}-train"
+    val_id = f"{dataset_name}-val"
+
+    # Register datasets
+    register_coco_instances(train_id, {}, os.path.join(train_path, "annotations.json"), train_path)
+    register_coco_instances(val_id, {}, os.path.join(val_path, "annotations.json"), val_path)
 
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
-    cfg.DATASETS.TRAIN = ("coco-big-images-rev-train",)
-    cfg.DATASETS.TEST = ("coco-big-images-rev-val",)
+    cfg.DATASETS.TRAIN = (train_id,)
+    cfg.DATASETS.TEST = (val_id,)
     cfg.WANDB_PROJECT = args.wandb_project
     cfg.WANDB_RUN_NAME = args.wandb_run_name
     cfg.OUTPUT_DIR = args.output_dir
